@@ -1,0 +1,6 @@
+*
+!custom_components/
+!custom_components/sec-api-v2/
+!custom_components/sec-api-v2/*
+!hacs.json
+!.gitignore
