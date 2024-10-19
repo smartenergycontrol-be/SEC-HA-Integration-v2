@@ -1,1 +1,0 @@
-"""SmartEnergyControl integration"""
