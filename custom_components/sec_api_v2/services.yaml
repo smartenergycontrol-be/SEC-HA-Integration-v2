@@ -1,0 +1,15 @@
+generate_contracts:
+  name: "Generate contracts"
+  description: "Generate multiple contracts with alias"
+  fields:
+    contracts:
+      name: Contracts
+      description: "A list of contracts, each with an id and alias"
+      required: true
+      example:
+        - id: "contract_1"
+          alias: "Contract 1"
+        - id: "contract_2"
+          alias: "Contract 2"
+      selector:
+        object: {}
