@@ -1,7 +1,7 @@
 {
   "domain": "sec_api_v2",
   "name": "smartenergycontrol - APIv2",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "codeowners": [
     "@jefcrb"
   ],
@@ -13,5 +13,4 @@
   "requirements": [],
   "ssdp": [],
   "zeroconf": [],
-  "supported_platforms": ["sensor"]
 }
