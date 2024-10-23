@@ -12,5 +12,6 @@
   "iot_class": "cloud_polling",
   "requirements": [],
   "ssdp": [],
-  "zeroconf": []
+  "zeroconf": [],
+  "supported_platforms": ["sensor"]
 }
