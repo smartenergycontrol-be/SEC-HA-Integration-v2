@@ -62,7 +62,7 @@ class SmartEnergyControlAPI:
         else:
             params["maand"] = MONTHS_MAP[params["maand"]]
         url = f"{API_BASE_URL}/data?{urlencode(params)}"
-        _LOGGER.info(url)
+        # _LOGGER.info(url)
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as response:
