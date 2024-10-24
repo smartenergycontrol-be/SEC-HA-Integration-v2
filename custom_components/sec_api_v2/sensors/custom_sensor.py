@@ -2,6 +2,8 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
 from homeassistant.helpers.event import async_track_state_change_event
 
+from ..services import format_id
+
 
 class CustomSensor(SensorEntity):
     """Representation of a custom sensor that tracks an existing sensor."""
@@ -14,16 +16,26 @@ class CustomSensor(SensorEntity):
         self._attributes = None
         self._unsub = None
         self._sensor_type = sensor_type
+        self._unique_id = f"sensor.{format_id(self._custom_sensor_name)}"
 
         if sensor_type == "afname":
-            self._custom_sensor_name += "_afname"
+            self._custom_sensor_name += " Afname"
+            self._unique_id += "_afname"
         if sensor_type == "injectie":
-            self._custom_sensor_name += "_injectie"
+            self._custom_sensor_name += " Injectie"
+            self._unique_id += "_injectie"
+
+        self.entity_id = self._unique_id
 
     @property
     def name(self):
         """Return the custom sensor name."""
         return self._custom_sensor_name
+
+    @property
+    def unique_id(self):
+        """Return the unique entity id."""
+        return self._unique_id
 
     @property
     def state(self):
@@ -43,7 +55,10 @@ class CustomSensor(SensorEntity):
             """Handle state changes of the original sensor."""
             new_state = event.data.get("new_state")
             if new_state:
-                self._state = new_state.state
+                try:
+                    self._state = float(new_state.state)
+                except (ValueError, TypeError):
+                    self._state = 0
                 self._attributes = new_state.attributes
                 self.async_write_ha_state()
 
@@ -68,12 +83,18 @@ class CustomSensor(SensorEntity):
                 self._state = original_sensor.attributes.get("prices_afname", {}).get(
                     "current_price", 0
                 )
-                self._attributes = {}
+                self._attributes = {
+                    "state_class": "measurement",
+                    "unit_of_measurement": "EUR/kWh",
+                }
             if self._sensor_type == "injectie":
                 self._state = original_sensor.attributes.get("prices_injectie", {}).get(
                     "current_price", 0
                 )
-                self._attributes = {}
+                self._attributes = {
+                    "state_class": "measurement",
+                    "unit_of_measurement": "EUR/kWh",
+                }
             if self._sensor_type == "all":
                 self._state = original_sensor.state
                 self._attributes = original_sensor.attributes
