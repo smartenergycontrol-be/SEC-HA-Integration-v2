@@ -51,5 +51,6 @@ class ConstSensor(SensorEntity):
         """Fetch constants from the API and update attributes."""
         zip_code = self._entry.data.get("zip_code")
         self._attributes = await self._api.get_constants(zip_code)
+        self._attributes.update({"icon": "mdi:anvil"})
         self._state = self._attributes.get("postcode", 0)
         self.async_write_ha_state()

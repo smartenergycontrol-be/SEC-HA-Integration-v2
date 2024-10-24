@@ -13,7 +13,7 @@ class CustomSensor(SensorEntity):
         self._custom_sensor_name = custom_sensor_name
         self._original_sensor_id = original_sensor_id
         self._state = None
-        self._attributes = None
+        self._attributes = {"icon": "mdi:folder"}
         self._unsub = None
         self._sensor_type = sensor_type
         self._unique_id = f"sensor.{format_id(self._custom_sensor_name)}"
@@ -55,19 +55,13 @@ class CustomSensor(SensorEntity):
             """Handle state changes of the original sensor."""
             new_state = event.data.get("new_state")
             if new_state:
-                try:
-                    self._state = float(new_state.state)
-                except (ValueError, TypeError):
-                    self._state = 0
-                self._attributes = new_state.attributes
+                self._update_values(new_state)
                 self.async_write_ha_state()
 
-        # Subscribe to state changes for the original sensor
         self._unsub = async_track_state_change_event(
             self.hass, self._original_sensor_id, state_listener
         )
 
-        # Initial update to get the current state of the sensor
         await self.async_update()
 
     async def async_will_remove_from_hass(self):
@@ -79,22 +73,28 @@ class CustomSensor(SensorEntity):
         """Update the sensor by fetching the state and attributes of the original sensor."""
         original_sensor = self.hass.states.get(self._original_sensor_id)
         if original_sensor:
-            if self._sensor_type == "afname":
-                self._state = original_sensor.attributes.get("prices_afname", {}).get(
-                    "current_price", 0
-                )
-                self._attributes = {
-                    "state_class": "measurement",
-                    "unit_of_measurement": "EUR/kWh",
-                }
-            if self._sensor_type == "injectie":
-                self._state = original_sensor.attributes.get("prices_injectie", {}).get(
-                    "current_price", 0
-                )
-                self._attributes = {
-                    "state_class": "measurement",
-                    "unit_of_measurement": "EUR/kWh",
-                }
-            if self._sensor_type == "all":
-                self._state = original_sensor.state
-                self._attributes = original_sensor.attributes
+            self._update_values(original_sensor)
+
+    def _update_values(self, original_sensor):
+        if self._sensor_type == "afname":
+            self._state = original_sensor.attributes.get("prices_afname", {}).get(
+                "current_price", self._state if self._state is not None else 0
+            )
+            self._attributes = {
+                "state_class": "measurement",
+                "unit_of_measurement": "EUR/kWh",
+                "icon": "mdi:folder-arrow-up",
+            }
+        if self._sensor_type == "injectie":
+            self._state = original_sensor.attributes.get("prices_injectie", {}).get(
+                "current_price", self._state if self._state is not None else 0
+            )
+            self._attributes = {
+                "state_class": "measurement",
+                "unit_of_measurement": "EUR/kWh",
+                "icon": "mdi:folder-arrow-down",
+            }
+        if self._sensor_type == "all":
+            self._state = original_sensor.state
+            self._attributes = dict(original_sensor.attributes)
+            self._attributes["icon"] = "mdi:folder"
