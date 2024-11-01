@@ -43,6 +43,23 @@ def initialize_db():
     """)
 
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS top_contracts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entry_id TEXT NOT NULL,
+            energy_type TEXT NOT NULL,
+            contract_type TEXT NOT NULL,
+            segment TEXT NOT NULL,
+            supplier TEXT NOT NULL,
+            contract_name TEXT NOT NULL,
+            price_component TEXT NOT NULL,
+            month TEXT NULL,
+            year TEXT NULL,
+            ranking TEXT NOT NULL,
+            UNIQUE(ranking)
+        )
+    """)
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS custom_sensors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             entry_id TEXT NOT NULL,
@@ -103,7 +120,6 @@ def add_custom_sensor(entry_id, original_sensor_id, custom_sensor_name):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Update existing record if custom_sensor_name exists
     cursor.execute(
         """
         UPDATE custom_sensors
@@ -113,9 +129,7 @@ def add_custom_sensor(entry_id, original_sensor_id, custom_sensor_name):
         (entry_id, original_sensor_id, custom_sensor_name),
     )
 
-    # Check if any rows were updated (i.e., if custom_sensor_name existed)
     if cursor.rowcount == 0:
-        # If no update occurred, insert a new record
         cursor.execute(
             """
             INSERT INTO custom_sensors (entry_id, original_sensor_id, custom_sensor_name)
@@ -253,6 +267,68 @@ def remove_custom_sensor(sensor_name):
         """,
         (sensor_name,),
     )
+
+    conn.commit()
+    conn.close()
+
+
+def add_top_contract(
+    ranking,
+    entry_id,
+    energy_type,
+    contract_type,
+    segment,
+    supplier,
+    contract_name,
+    price_component,
+    month=None,
+    year=None,
+):
+    """Insert or update a row in the top_contracts table based on the ranking."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE top_contracts
+        SET entry_id = ?, energy_type = ?, contract_type = ?, segment = ?, supplier = ?,
+            contract_name = ?, price_component = ?, month = ?, year = ?
+        WHERE ranking = ?
+        """,
+        (
+            entry_id,
+            energy_type,
+            contract_type,
+            segment,
+            supplier,
+            contract_name,
+            price_component,
+            month if month is not None else "NULL",
+            year if year is not None else "NULL",
+            ranking,
+        ),
+    )
+
+    if cursor.rowcount == 0:
+        cursor.execute(
+            """
+            INSERT INTO top_contracts (entry_id, energy_type, contract_type, segment, supplier,
+                                        contract_name, price_component, month, year, ranking)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                entry_id,
+                energy_type,
+                contract_type,
+                segment,
+                supplier,
+                contract_name,
+                price_component,
+                month if month is not None else "NULL",
+                year if year is not None else "NULL",
+                ranking,
+            ),
+        )
 
     conn.commit()
     conn.close()

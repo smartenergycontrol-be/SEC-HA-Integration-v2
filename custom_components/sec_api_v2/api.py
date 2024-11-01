@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 import aiohttp
 
 _LOGGER = logging.getLogger(__name__)
-API_BASE_URL = "https://api.smartenergycontrol.be"
+API_BASE_URL = "http://192.168.1.118:5000"
 
 MONTHS_MAP = {
     "January": "jan",
@@ -62,11 +62,12 @@ class SmartEnergyControlAPI:
         else:
             params["maand"] = MONTHS_MAP[params["maand"]]
         url = f"{API_BASE_URL}/data?{urlencode(params)}"
-        # _LOGGER.info(url)
+        _LOGGER.info(url)
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=self.headers) as response:
                     if response.status == 200:
+                        _LOGGER.info("Request finished")
                         return await response.json()
                     else:
                         _LOGGER.error(f"Failed to fetch data: {response.status}")

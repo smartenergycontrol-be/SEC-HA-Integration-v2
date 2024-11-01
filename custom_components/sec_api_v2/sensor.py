@@ -28,13 +28,11 @@ async def async_setup_entry(
 
     sensors = []
     for contract in contracts:
-        # Check if the sensor already exists in the entity registry
         if entity_registry.async_get_entity_id(
             DOMAIN, "sensor", contract[10].strip("sensor.")
         ):
             continue
 
-        # If it doesn't exist, create the sensor and add to list
         sensor = contract_sensor.ContractSensor(hass, contract, api, config_entry)
         sensors.append(sensor)
 

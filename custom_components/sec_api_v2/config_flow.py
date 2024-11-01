@@ -57,6 +57,11 @@ class SecOptionsFlow(config_entries.OptionsFlow):
         self.jaar = None
         self.maand = None
 
+        self.conf_top_energy_type = None
+        self.conf_top_segment = None
+        self.conf_top_vast_variabel_dynamisch = None
+        self.conf_top_contracts_limit = None
+
     async def async_step_init(self, user_input=None):
         """Handle the initial step of the options flow."""
         if user_input is not None:
@@ -69,6 +74,8 @@ class SecOptionsFlow(config_entries.OptionsFlow):
                 return await self.async_step_remove_contract()
             if action == "Remove custom sensor":
                 return await self.async_step_remove_custom_sensor()
+            if action == "Configure top contracts":
+                return await self.async_step_configure_top_contracts()
 
         data_schema = vol.Schema(
             {
@@ -78,6 +85,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
                         "Set contract id",
                         "Remove contract",
                         "Remove custom sensor",
+                        "Configure top contracts",
                     ]
                 ),
             }
@@ -414,4 +422,39 @@ class SecOptionsFlow(config_entries.OptionsFlow):
             step_id="remove_custom_sensor",
             data_schema=data_schema,
             description_placeholders={},
+        )
+
+    async def async_step_configure_top_contracts(self, user_input=None):
+        """Handle the configuration of top contracts."""
+        if user_input is not None:
+            self.conf_top_energy_type = user_input["conf_top_energy_type"]
+            self.conf_top_segment = user_input["conf_top_segment"]
+            self.conf_top_vast_variabel_dynamisch = user_input["conf_top_contract_type"]
+            self.conf_top_contracts_limit = user_input["conf_top_contracts_limit"]
+
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+
+            return self.async_create_entry(title="Top Contracts Configured", data={})
+
+        data_schema = vol.Schema(
+            {
+                vol.Required("conf_top_energy_type", default="All"): vol.In(
+                    ["Elektriciteit", "Gas", "All"]
+                ),
+                vol.Required("conf_top_segment", default="All"): vol.In(
+                    ["Woning", "Onderneming", "All"]
+                ),
+                vol.Required("conf_top_contract_type", default="All"): vol.In(
+                    ["Dynamisch", "Variabel", "Vast", "All"]
+                ),
+                vol.Required("conf_top_contracts_limit", default=5): vol.Coerce(int),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="configure_top_contracts",
+            data_schema=data_schema,
+            description_placeholders={
+                "description": "Configure top contracts filter and limit"
+            },
         )
