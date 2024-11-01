@@ -2,6 +2,7 @@
 !custom_components/
 !custom_components/sec_api_v2/
 !custom_components/sec_api_v2/*
+custom_components/sec_api_v2/contracts.db
 !custom_components/sec_api_v2/translations
 !custom_components/sec_api_v2/translations/*
 !custom_components/sec_api_v2/sensors

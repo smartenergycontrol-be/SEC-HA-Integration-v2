@@ -63,33 +63,4 @@ async def async_handle_generate_contracts(hass, entry, call):
 
 
 async def async_handle_fetch_best_contracts(hass: HomeAssistant, entry):
-    _LOGGER.info("Settup up best contracts")
-    api = hass.data.setdefault(DOMAIN, {})[entry.entry_id]
-    energy_type = entry.data.get("conf_top_energy_type", "")
-    segment = entry.data.get("conf_top_segment", "")
-    contract_type = entry.data.get("conf_top_contract_type", "")
-    amount = entry.data.get("conf_top_contracts_limit", "5")
-
-    data = await api.get_prijsonderdelen(
-        energietype=energy_type,
-        segment=segment,
-        vast_variabel_dynamisch=contract_type,
-        bottom=amount,
-        postcode=entry.data.get("postcode", "2000"),
-        show_prices="yes",
-    )
-
-    _LOGGER.info("Adding top contracts to database")
-
-    for i, row in enumerate(data):
-        add_top_contract(
-            i + 1,
-            entry.entry_id,
-            row["energietype"],
-            row["vast_variabel_dynamisch"],
-            row["segment"],
-            row["handelsnaam"],
-            row["productnaam"],
-            row["prijsonderdeel"],
-        )
-    _LOGGER.info("Top contracts added")
+    pass
