@@ -16,7 +16,6 @@ def set_db_path(hass):
 
 def initialize_db():
     """Initialize the contracts database and create tables if not exists."""
-    _LOGGER.info("Initializing database")
 
     db_dir = os.path.dirname(DB_PATH)
     if not os.path.exists(db_dir):
@@ -154,6 +153,18 @@ def get_contracts(entry_id):
     return contracts
 
 
+def get_top_contracts(entry_id):
+    """Retrieve top contracts for a specific config entry."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM top_contracts WHERE entry_id=?", (entry_id,))
+    contracts = cursor.fetchall()
+
+    conn.close()
+    return contracts
+
+
 def get_custom_sensors(entry_id):
     """Retrieve all custom sensor mappings."""
     conn = sqlite3.connect(DB_PATH)
@@ -266,6 +277,21 @@ def remove_custom_sensor(sensor_name):
         WHERE custom_sensor_name = ?
         """,
         (sensor_name,),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def empty_top_contracts():
+    """Empty top contracts table."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM top_contracts;
+        """
     )
 
     conn.commit()

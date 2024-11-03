@@ -9,12 +9,8 @@ from homeassistant.exceptions import ConfigEntryNotReady
 
 from .api import SmartEnergyControlAPI
 from .const import API_KEY, DOMAIN
+from .db import initialize_db, remove_all_except_entry_id, set_db_path
 from .services import async_handle_generate_contracts, async_handle_fetch_best_contracts
-from .db import (
-    initialize_db,
-    set_db_path,
-    remove_all_except_entry_id,
-)
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[Platform] = [Platform.SENSOR]

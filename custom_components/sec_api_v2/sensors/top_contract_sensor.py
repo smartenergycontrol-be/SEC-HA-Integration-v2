@@ -18,7 +18,7 @@ from ..services import format_id
 _LOGGER = logging.getLogger(__name__)
 
 
-class ContractSensor(CoordinatorEntity, SensorEntity):
+class TopContractSensor(CoordinatorEntity, SensorEntity):
     """Representation of a contract sensor."""
 
     def __init__(
@@ -39,30 +39,16 @@ class ContractSensor(CoordinatorEntity, SensorEntity):
             self._price_component,
             self._month,
             self._year,
-            self._sensor_id,
+            self._position,
         ) = contract
 
-        self._name = f"SEC: {self._supplier}, {self._contract_name}, {self._price_component}, {self._energy_type}, {self._contract_type}"
+        self._name = f"SEC: Top {self._position}"
 
         if self._month in [None, "NULL"] and self._year in [None, "NULL"]:
-            _id = f"sec_{self._supplier}_{self._contract_name}_{self._energy_type}_{self._contract_type}_{self._price_component}_{self._segment}"
-        else:
-            _id = f"sec_{self._supplier}_{self._contract_name}_{self._energy_type}_{self._contract_type}_{self._price_component}_{self._segment}_{self._month}_{self._year}"
+            _id = f"sec_top_{self._position}_contract"
         formatted_id = format_id(_id)
         self._unique_id = formatted_id
         self.entity_id = async_generate_entity_id("sensor.{}", formatted_id, hass=hass)
-
-        update_sensor_id(
-            self.entity_id,
-            self._energy_type,
-            self._contract_type,
-            self._segment,
-            self._supplier,
-            self._contract_name,
-            self._price_component,
-            self._month,
-            self._year,
-        )
 
         self.coordinator = DataUpdateCoordinator(
             hass,
@@ -137,7 +123,7 @@ class ContractSensor(CoordinatorEntity, SensorEntity):
         """Return the state attributes."""
         data = self.coordinator.data
         if data and self._id in data:
-            data[self._id]["attributes"].update({"icon": "mdi:currency-eur"})
+            data[self._id]["attributes"].update({"icon": "mdi:medal"})
             return data[self._id]["attributes"]
         return None
 

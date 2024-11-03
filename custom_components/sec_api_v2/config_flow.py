@@ -16,6 +16,7 @@ from .db import (
     remove_contract,
     remove_custom_sensor,
 )
+from .services import async_handle_fetch_best_contracts
 
 _LOGGER = logging.getLogger(__name__)
 logging.getLogger(DOMAIN).setLevel(logging.DEBUG)
@@ -23,6 +24,8 @@ logging.getLogger(DOMAIN).setLevel(logging.DEBUG)
 
 @config_entries.HANDLERS.register(DOMAIN)
 class SecConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Define config flow."""
+
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
@@ -31,7 +34,10 @@ class SecConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(title="sec", data=user_input)
 
         data_schema = vol.Schema(
-            {vol.Required("api_key"): str, vol.Required("zip_code"): str}
+            {
+                vol.Required("api_key"): str,
+                vol.Required("zip_code"): str,
+            }
         )
 
         return self.async_show_form(
@@ -42,11 +48,15 @@ class SecConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
+        """Init options flow."""
         return SecOptionsFlow(config_entry)
 
 
 class SecOptionsFlow(config_entries.OptionsFlow):
-    def __init__(self, config_entry):
+    """Definition options flow."""
+
+    def __init__(self, config_entry) -> None:
+        """Initialize options flow."""
         self.config_entry = config_entry
         self.energy_type = None
         self.vast_variabel_dynamisch = None
@@ -102,10 +112,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
             self.energy_type = user_input["energy_type"]
             self.vast_variabel_dynamisch = user_input["vast_variabel_dynamisch"]
             self.segment = user_input["segment"]
-            # _LOGGER.debug(
-            #     f"Selection: Energy Type: {self.energy_type}, "
-            #     f"Contract Type: {self.vast_variabel_dynamisch}, Segment: {self.segment}"
-            # )
+
             if self.vast_variabel_dynamisch == "Vast":
                 return await self.async_step_time_selection()
 
@@ -168,7 +175,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
         """Handle the selection of supplier."""
         if user_input is not None:
             self.supplier = user_input["selected_supplier"]
-            _LOGGER.debug(f"Selected Supplier: {self.supplier}")
+            # _LOGGER.debug(f"Selected Supplier: {self.supplier}")
             return await self.async_step_contract_selection()
 
         api = self.hass.data[DOMAIN][self.config_entry.entry_id]
@@ -189,7 +196,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.error("No data returned from API for supplier selection")
             return self.async_abort(reason="api_data_error")
 
-        _LOGGER.debug(f"Prijsonderdelen list received: {prijsonderdelen_list}")
+        # _LOGGER.debug(f"Prijsonderdelen list received: {prijsonderdelen_list}")
 
         filtered_suppliers = list(
             {p.get("handelsnaam") for p in prijsonderdelen_list if p.get("handelsnaam")}
@@ -199,7 +206,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.warning("No suppliers found with the selected filters")
             return self.async_abort(reason="no_suppliers_found")
 
-        _LOGGER.debug(f"Filtered suppliers: {filtered_suppliers}")
+        # _LOGGER.debug(f"Filtered suppliers: {filtered_suppliers}")
 
         data_schema = vol.Schema(
             {vol.Required("selected_supplier"): vol.In(filtered_suppliers)}
@@ -217,7 +224,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
         """Handle the selection of a contract."""
         if user_input is not None:
             self.contract = user_input["selected_contract"]
-            _LOGGER.debug(f"Selected Contract: {self.contract}")
+            # _LOGGER.debug(f"Selected Contract: {self.contract}")
             return await self.async_step_price_component_selection()
 
         api = self.hass.data[DOMAIN][self.config_entry.entry_id]
@@ -235,7 +242,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.error("No data returned from API for contract selection")
             return self.async_abort(reason="api_data_error")
 
-        _LOGGER.debug(f"Prijsonderdelen list received: {prijsonderdelen_list}")
+        # _LOGGER.debug(f"Prijsonderdelen list received: {prijsonderdelen_list}")
 
         filtered_contracts = list(
             {p.get("productnaam") for p in prijsonderdelen_list if p.get("productnaam")}
@@ -245,7 +252,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.warning("No contracts found for the selected supplier")
             return self.async_abort(reason="no_contracts_found")
 
-        _LOGGER.debug(f"Filtered contracts: {filtered_contracts}")
+        # _LOGGER.debug(f"Filtered contracts: {filtered_contracts}")
 
         data_schema = vol.Schema(
             {vol.Required("selected_contract"): vol.In(filtered_contracts)}
@@ -294,7 +301,7 @@ class SecOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.error("No data returned from API for price component selection")
             return self.async_abort(reason="api_data_error")
 
-        _LOGGER.debug(f"Prijsonderdelen list received: {prijsonderdelen_list}")
+        # _LOGGER.debug(f"Prijsonderdelen list received: {prijsonderdelen_list}")
 
         filtered_price_components = list(
             {
@@ -426,11 +433,25 @@ class SecOptionsFlow(config_entries.OptionsFlow):
 
     async def async_step_configure_top_contracts(self, user_input=None):
         """Handle the configuration of top contracts."""
+
         if user_input is not None:
+            for key, val in user_input.items():
+                if val == "All":
+                    user_input[key] = ""
+
             self.conf_top_energy_type = user_input["conf_top_energy_type"]
             self.conf_top_segment = user_input["conf_top_segment"]
             self.conf_top_vast_variabel_dynamisch = user_input["conf_top_contract_type"]
             self.conf_top_contracts_limit = user_input["conf_top_contracts_limit"]
+
+            data = {
+                "conf_top_energy_type": self.conf_top_energy_type,
+                "conf_top_segment": self.conf_top_segment,
+                "conf_top_contract_type": self.conf_top_vast_variabel_dynamisch,
+                "conf_top_contracts_limit": self.conf_top_contracts_limit,
+            }
+
+            await async_handle_fetch_best_contracts(self.hass, self.config_entry, data)
 
             await self.hass.config_entries.async_reload(self.config_entry.entry_id)
 
@@ -438,16 +459,17 @@ class SecOptionsFlow(config_entries.OptionsFlow):
 
         data_schema = vol.Schema(
             {
-                vol.Required("conf_top_energy_type", default="All"): vol.In(
-                    ["Elektriciteit", "Gas", "All"]
+                vol.Required("conf_top_energy_type", default="Elektriciteit"): vol.In(
+                    ["Elektriciteit", "Gas"]
                 ),
-                vol.Required("conf_top_segment", default="All"): vol.In(
+                vol.Required("conf_top_segment", default="Woning"): vol.In(
                     ["Woning", "Onderneming", "All"]
                 ),
-                vol.Required("conf_top_contract_type", default="All"): vol.In(
+                vol.Required("conf_top_contract_type", default="Dynamisch"): vol.In(
                     ["Dynamisch", "Variabel", "Vast", "All"]
                 ),
-                vol.Required("conf_top_contracts_limit", default=5): vol.Coerce(int),
+                vol.Required("conf_top_contracts_limit", default=3): vol.Coerce(int),
+                vol.Optional("configure_top_contracts", default=True): bool,
             }
         )
 

@@ -7,8 +7,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
-from .db import get_contracts, get_custom_sensors
-from .sensors import constant_sensor, contract_sensor, custom_sensor
+from .db import get_contracts, get_custom_sensors, get_top_contracts
+from .sensors import (
+    constant_sensor,
+    contract_sensor,
+    custom_sensor,
+    top_contract_sensor,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +27,9 @@ async def async_setup_entry(
     contracts = await hass.async_add_executor_job(get_contracts, config_entry.entry_id)
     custom_sensors = await hass.async_add_executor_job(
         get_custom_sensors, config_entry.entry_id
+    )
+    top_contracts = await hass.async_add_executor_job(
+        get_top_contracts, config_entry.entry_id
     )
     api = hass.data[DOMAIN][config_entry.entry_id]
     entity_registry = er.async_get(hass)
@@ -47,6 +55,17 @@ async def async_setup_entry(
         sensors.append(sensor)
         sensors.append(sensor_afname)
         sensors.append(sensor_injectie)
+
+    for contract in top_contracts:
+        if entity_registry.async_get_entity_id(
+            DOMAIN, "sensor", contract[10].strip("sensor.")
+        ):
+            continue
+
+        sensor = top_contract_sensor.TopContractSensor(
+            hass, contract, api, config_entry
+        )
+        sensors.append(sensor)
 
     sensors.append(constant_sensor.ConstSensor(hass, config_entry, api))
 
