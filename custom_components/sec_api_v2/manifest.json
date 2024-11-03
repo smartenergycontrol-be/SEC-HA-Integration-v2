@@ -1,7 +1,7 @@
 {
   "domain": "sec_api_v2",
   "name": "smartenergycontrol - APIv2",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "codeowners": [
     "@jefcrb"
   ],
