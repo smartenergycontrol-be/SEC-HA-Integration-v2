@@ -3,7 +3,7 @@
   "name": "smartenergycontrol - APIv2",
   "version": "0.0.6",
   "codeowners": [
-    "@jefcrb"
+    "@smartenergycontrol-be"
   ],
   "config_flow": true,
   "dependencies": [],
