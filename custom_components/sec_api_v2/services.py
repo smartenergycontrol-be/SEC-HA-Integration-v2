@@ -85,8 +85,20 @@ async def async_handle_fetch_best_contracts(hass: HomeAssistant, entry, data=Non
         show_prices="yes",
     )
 
+    sorted_data = sorted(
+        data,
+        key=lambda x: x.get("prices_afname", {}).get(
+            "today_avg_anchor_10kwh", float("inf")
+        ),
+    )
+
+    for row in sorted_data:
+        _LOGGER.info(row["productnaam"])
+        _LOGGER.info(row["prices_afname"]["today_avg_anchor_10kwh"])
+        _LOGGER.info("======")
+
     empty_top_contracts()
-    for i, row in enumerate(data):
+    for i, row in enumerate(sorted_data):
         _LOGGER.info(f"Adding top contract {i}")
         add_top_contract(
             i + 1,
