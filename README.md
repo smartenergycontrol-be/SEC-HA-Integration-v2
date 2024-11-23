@@ -38,11 +38,14 @@ The integration is in an early state and receives a lot of updates. If you alrea
 
 #### Usage
 ![image](https://github.com/user-attachments/assets/4af69a50-c9a1-4780-b81b-338969da5c70)
-![image](https://github.com/user-attachments/assets/94d1316e-248d-429b-8228-d0a7f1c20aa3)
+![image](https://github.com/user-attachments/assets/f75eb973-a11b-4199-9d6a-6adb92f8fba6)
 ![image](https://github.com/user-attachments/assets/338a15e4-7c95-4dd2-962c-07af2848b249)
 ![image](https://github.com/user-attachments/assets/b0241bdd-c599-47ef-a286-a47304ae65f8)
 ![image](https://github.com/user-attachments/assets/65f55d69-bf9d-485f-bc2c-41d1fe31e226)
 ![image](https://github.com/user-attachments/assets/2ec8dca1-044b-4ff6-806a-3eb8537b5992)
+
+![image](https://github.com/user-attachments/assets/f7a522b6-83b2-480d-bde0-6686e81fac20)
+
 
 
 
